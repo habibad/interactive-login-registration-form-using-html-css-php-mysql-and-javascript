@@ -3,11 +3,12 @@ session_start();
 ?>
 <?php
 if(isset($_POST["confirm"])){
-    $confirmName = $_POST["confirmName"];
-    echo "Confirming name: " . htmlspecialchars($confirmName) . "<br>";
+    $userName = $_POST["userName"];
+    $confirmedPassword = $_POST["confirmPassword"];
+    echo "Confirming name: " . htmlspecialchars($userName) . "<br>";
     echo "Confirming session data name: " . htmlspecialchars($_SESSION["fName"]) . "<br>";
-    if($confirmName === $_SESSION['fName']){
-        echo "Wellcome to the dashboard, " . $confirmName . "!";
+    if($userName === $_SESSION['fName'] && $confirmedPassword === $_SESSION['password']){
+        echo "Wellcome to the dashboard, " . $userName . "!";
     }
     else{
         
