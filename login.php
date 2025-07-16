@@ -61,7 +61,11 @@ if (isset($_POST["signUp"])) {
     if(isset($_GET["error"]) && $_GET["error"] === "invalidname"){
         echo "<p style='color: red;'>Invalid name or password. Please try again.</p>";
     }
+    else if(isset($_GET["error"]) && $_GET["error"] === "emptyfields"){
+        echo "<p style='color: red;'>please fill the login form.</p>";
+    }
     ?>
+   
     <form action="user-dashboard.php" method="post">
         <label for="userName">user Name</label>
         <input type="text" name="userName" id="userName" value="" required><br><br>
@@ -71,6 +75,10 @@ if (isset($_POST["signUp"])) {
         <input type="submit" name="confirm" value="Confirm">
 
     </form>
+    <a href="/login-form/forget.php">
+  <button type="button">Forget Account</button>
+</a>
+
 </body>
 
 </html>
