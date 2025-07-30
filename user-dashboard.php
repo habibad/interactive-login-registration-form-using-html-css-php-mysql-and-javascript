@@ -8,7 +8,7 @@ if (isset($_POST["confirm"])) {
 
     // Sanitize and debug output
     echo "Confirming name: " . htmlspecialchars($userName) . "<br>";
-    echo "Confirming session data name: " . htmlspecialchars($_SESSION["fName"]) . "<br>";
+    // echo "Confirming session data name: " . htmlspecialchars($_SESSION["fName"]) . "<br>";
 
     // Check if inputs are empty
     if (empty($userName) || empty($confirmedPassword)) {

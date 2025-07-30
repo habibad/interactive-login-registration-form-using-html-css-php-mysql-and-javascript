@@ -70,7 +70,7 @@ if (isset($_POST["signUp"])) {
         <label for="userName">user Name</label>
         <input type="text" name="userName" id="userName" value="" required><br><br>
         <label for="confirmPassword">Password</label>
-        <input type="password" name="confirmPassword" id="confirmPassword" value="" required>
+        <input type="password" name="confirmPassword" id="confirmPassword" value="" required><br>
 
         <input type="submit" name="confirm" value="Confirm">
 

@@ -16,6 +16,8 @@ if(isset($_POST["forget"])){
             // User exists
             $stmt->bind_result($userId);
             $stmt->fetch();
+            $_SESSION['sessionUserId'] = $userId;
+            echo "User ID from session: " . htmlspecialchars($_SESSION["sessionUserId"]) . "<br>";
             if ($userId){
                 $randomNumber = rand(1000000, 9999999);
                 $_SESSION['randomNumber'] = $randomNumber;
