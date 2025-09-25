@@ -1,62 +1,53 @@
 <?php
+// user-dashboard.php - Enhanced User Dashboard
 session_start();
-include "config.php"; // Make sure this contains $conn for DB connection
+require_once 'config.php';
 
-if (isset($_POST["confirm"])) {
-    $userName = $_POST["userName"];
-    $confirmedPassword = $_POST["confirmPassword"];
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: index.php");
+    exit();
+}
 
-    // Sanitize and debug output
-    echo "Confirming name: " . htmlspecialchars($userName) . "<br>";
-    // echo "Confirming session data name: " . htmlspecialchars($_SESSION["fName"]) . "<br>";
+$userId = $_SESSION['user_id'];
 
-    // Check if inputs are empty
-    if (empty($userName) || empty($confirmedPassword)) {
-        header("Location: /login-form/login.php?error=emptyfields");
+// Fetch user data
+try {
+    $stmt = $conn->prepare("SELECT id, first_name, last_name, email, phone, dob, profile_picture, created_at FROM users WHERE id = ?");
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
+    
+    if (!$user) {
+        session_destroy();
+        header("Location: index.php");
         exit();
     }
-
-    // Prepare and execute secure SQL statement
-    $sql = "SELECT id FROM users WHERE first_name = ? AND password = ?";
-    $stmt = $conn->prepare($sql);
-
-    if ($stmt) {
-        // Bind parameters (s = string, string)
-        $stmt->bind_param("ss", $userName, $confirmedPassword);
-        $stmt->execute();
-        $stmt->store_result();
-
-        // Check if a matching user is found
-        if ($stmt->num_rows > 0) {
-            $stmt->bind_result($userId);
-            $stmt->fetch();
-            // Success
-            echo "User confirmed. You may proceed.";
-            echo $userId . " user(s) found.<br>";
-            $userInfo = "SELECT id, first_name, last_name, email, phone, dob, password FROM users WHERE id = ?";
-            $userdata = $conn->prepare($userInfo);
-            if ($userdata) {
-                $userdata->bind_param("i", $userId); // 'i' because id is integer
-                $userdata->execute();
-                $userdata->store_result();
-                $userdata->bind_result($id, $firstName, $lastName, $email, $phone, $dob, $password);
-                while ($userdata->fetch()) {
-                    echo "User ID: $id, Name: $firstName $lastName, Email: $email, Phone: $phone, DOB: $dob";
-                }
-            }
-
-            
-            // You can also redirect or store data in session
-        } else {
-            // No match found
-            header("Location: /login-form/login.php?error=invalidname");
-            exit();
-        }
-
-        $stmt->close();
-    } else {
-        header("Location: /login-form/login.php?error=sqlerror");
-        exit();
-    }
+} catch (Exception $e) {
+    error_log("User data fetch error: " . $e->getMessage());
+    header("Location: index.php?error=system");
+    exit();
 }
 ?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - Admin Panel</title>
+    <script>
+        // Redirect to the main admin dashboard
+        window.location.href = 'admin-dashboard.html';
+    </script>
+</head>
+<body>
+    <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-family: Arial, sans-serif;">
+        <div style="text-align: center;">
+            <h2>Redirecting to Admin Dashboard...</h2>
+            <p>If you're not redirected automatically, <a href="admin-dashboard.html" style="color: #4f46e5;">click here</a>.</p>
+        </div>
+    </div>
+</body>
+</html>

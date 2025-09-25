@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.3/cdn.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            margin: 0.5rem 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transform: translateX(4px);
+        }
+
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            color: white;
+            width: 300px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 20px rgba(79, 70, 229, 0.3);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .notification-btn {
+            position: relative;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .notification-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+        }
+
+        .stat-change {
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .stat-change.positive {
+            color: #10b981;
+        }
+
+        .stat-change.negative {
+            color: #ef4444;
+        }
+
+        .chart-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 2rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .chart-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .table-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .table-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .table th {
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 600;
+        }
+
+        .table td {
+            color: white;
+        }
+
+        .table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .status-inactive {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .mobile-nav {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .header {
+                padding: 1rem;
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .search-input {
+                width: 200px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .mobile-nav {
+                display: block;
+            }
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .google-signin-btn {
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .google-signin-btn:hover {
+            background: #3367d6;
+        }
+
+        .verification-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: white;
+            font-size: 1.2rem;
+            text-align: center;
+            width: 60px;
+            height: 60px;
+        }
+
+        .verification-container {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container" x-data="dashboard()">
+        <!-- Sidebar -->
+        <nav class="sidebar" :class="{ 'collapsed': sidebarCollapsed, 'open': mobileMenuOpen }">
+            <div class="sidebar-header">
+                <div class="logo">AD</div>
+                <span x-show="!sidebarCollapsed" style="color: white; font-weight: bold;">Admin Dashboard</span>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-item" :class="{ 'active': activeSection === 'dashboard' }" @click="setActiveSection('dashboard')">
+                    <i class="fas fa-tachometer-alt nav-icon"></i>
+                    <span x-show="!sidebarCollapsed">Dashboard</span>
+                </div>
+                <div class="nav-item" :class="{ 'active': activeSection === 'users' }" @click="setActiveSection('users')">
+                    <i class="fas fa-users nav-icon"></i>
+                    <span x-show="!sidebarCollapsed">Users</span>
+                </div>
+                <div class="nav-item" :class="{ 'active': activeSection === 'analytics' }" @click="setActiveSection('analytics')">
+                    <i class="fas fa-chart-bar nav-icon"></i>
+                    <span x-show="!sidebarCollapsed">Analytics</span>
+                </div>
+                <div class="nav-item" :class="{ 'active': activeSection === 'settings' }" @click="setActiveSection('settings')">
+                    <i class="fas fa-cog nav-icon"></i>
+                    <span x-show="!sidebarCollapsed">Settings</span>
+                </div>
+                <div class="nav-item" :class="{ 'active': activeSection === 'auth' }" @click="setActiveSection('auth')">
+                    <i class="fas fa-shield-alt nav-icon"></i>
+                    <span x-show="!sidebarCollapsed">Authentication</span>
+                </div>
+                <div class="nav-item" @click="logout()">
+                    <i class="fas fa-sign-out-alt nav-icon"></i>
+                    <span x-show="!sidebarCollapsed">Logout</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button class="toggle-btn" @click="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" placeholder="Search anything...">
+                    </div>
+                </div>
+                <div class="header-right">
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </button>
+                    <div class="user-profile" @click="toggleUserMenu()">
+                        <div class="user-avatar">JD</div>
+                        <span style="color: white;">John Doe</span>
+                        <i class="fas fa-chevron-down" style="color: rgba(255, 255, 255, 0.6);"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Section -->
+            <div class="content-section" :class="{ 'active': activeSection === 'dashboard' }">
+                <!-- Stats Grid -->
+                <div class="dashboard-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: linear-gradient(45deg, #4f46e5, #7c3aed);">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" x-text="stats.totalUsers"></div>
+                        <div class="stat-label">Total Users</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+12%</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: linear-gradient(45deg, #10b981, #059669);">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" x-text="stats.revenue"></div>
+                        <div class="stat-label">Revenue</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+8%</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: linear-gradient(45deg, #f59e0b, #d97706);">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" x-text="stats.orders"></div>
+                        <div class="stat-label">Orders</div>
+                        <div class="stat-change negative">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>-3%</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: linear-gradient(45deg, #ef4444, #dc2626);">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" x-text="stats.views"></div>
+                        <div class="stat-label">Page Views</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+15%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Section -->
+                <div class="chart-section">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Analytics Overview</h3>
+                        <select style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; padding: 0.5rem; color: white;">
+                            <option value="7">Last 7 days</option>
+                            <option value="30">Last 30 days</option>
+                            <option value="90">Last 3 months</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="analyticsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Section -->
+            <div class="content-section" :class="{ 'active': activeSection === 'users' }">
+                <div class="table-section">
+                    <div class="table-header">
+                        <h3 class="table-title">User Management</h3>
+                        <button class="btn-primary">
+                            <i class="fas fa-plus"></i> Add User
+                        </button>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="user in users" :key="user.id">
+                                <tr>
+                                    <td x-text="user.name"></td>
+                                    <td x-text="user.email"></td>
+                                    <td>
+                                        <span class="status-badge" :class="'status-' + user.status" x-text="user.status"></span>
+                                    </td>
+                                    <td x-text="user.joined"></td>
+                                    <td>
+                                        <button class="action-btn"><i class="fas fa-edit"></i></button>
+                                        <button class="action-btn"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Authentication Section -->
+            <div class="content-section" :class="{ 'active': activeSection === 'auth' }">
+                <div class="dashboard-grid">
+                    <!-- Google Sign-In Setup -->
+                    <div class="stat-card">
+                        <h3 style="color: white; margin-bottom: 1rem;">Google Sign-In Setup</h3>
+                        <button class="google-signin-btn" @click="initGoogleSignIn()">
+                            <i class="fab fa-google"></i>
+                            Configure Google OAuth
+                        </button>
+                        <p style="color: rgba(255, 255, 255, 0.7); margin-top: 1rem; font-size: 0.875rem;">
+                            Set up Google OAuth for seamless user authentication
+                        </p>
+                    </div>
+
+                    <!-- SMTP Configuration -->
+                    <div class="stat-card">
+                        <h3 style="color: white; margin-bottom: 1rem;">SMTP Configuration</h3>
+                        <div style="margin-bottom: 1rem;">
+                            <input type="email" placeholder="SMTP Username" style="width: 100%; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; padding: 0.75rem; color: white; margin-bottom: 0.5rem;">
+                            <input type="password" placeholder="App Password" style="width: 100%; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; padding: 0.75rem; color: white;">
+                        </div>
+                        <button class="btn-primary">Save SMTP Settings</button>
+                    </div>
+
+                    <!-- Verification Code Demo -->
+                    <div class="stat-card" style="grid-column: span 2;">
+                        <h3 style="color: white; margin-bottom: 1rem;">Auto Verification Code</h3>
+                        <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 1rem;">
+                            Enter verification code (auto-detection enabled for mobile)
+                        </p>
+                        <div class="verification-container">
+                            <input type="text" class="verification-input" maxlength="1" @input="autoFillCode($event, 0)">
+                            <input type="text" class="verification-input" maxlength="1" @input="autoFillCode($event, 1)">
+                            <input type="text" class="verification-input" maxlength="1" @input="autoFillCode($event, 2)">
+                            <input type="text" class="verification-input" maxlength="1" @input="autoFillCode($event, 3)">
+                            <input type="text" class="verification-input" maxlength="1" @input="autoFillCode($event, 4)">
+                            <input type="text" class="verification-input" maxlength="1" @input="autoFillCode($event, 5)">
+                        </div>
+                        <button class="btn-primary" @click="verifyCode()">Verify Code</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Section -->
+            <div class="content-section" :class="{ 'active': activeSection === 'analytics' }">
+                <div class="chart-section">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Advanced Analytics</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="advancedChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="content-section" :class="{ 'active': activeSection === 'settings' }">
+                <div class="table-section">
+                    <div class="table-header">
+                        <h3 class="table-title">System Settings</h3>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                        <div style="background: rgba(255, 255, 255, 0.05); padding: 1.5rem; border-radius: 12px;">
+                            <h4 style="color: white; margin-bottom: 1rem;">General Settings</h4>
+                            <div style="margin-bottom: 1rem;">
+                                <label style="color: rgba(255, 255, 255, 0.8); display: block; margin-bottom: 0.5rem;">Site Name</label>
+                                <input type="text" value="Admin Dashboard" style="width: 100%; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; padding: 0.75rem; color: white;">
+                            </div>
+                            <button class="btn-primary">Save Changes</button>
+                        </div>
+                        
+                        <div style="background: rgba(255, 255, 255, 0.05); padding: 1.5rem; border-radius: 12px;">
+                            <h4 style="color: white; margin-bottom: 1rem;">Security Settings</h4>
+                            <div style="margin-bottom: 1rem;">
+                                <label style="color: rgba(255, 255, 255, 0.8); display: block; margin-bottom: 0.5rem;">
+                                    <input type="checkbox" style="margin-right: 0.5rem;">
+                                    Enable Two-Factor Authentication
+                                </label>
+                                <label style="color: rgba(255, 255, 255, 0.8); display: block; margin-bottom: 0.5rem;">
+                                    <input type="checkbox" style="margin-right: 0.5rem;">
+                                    Force HTTPS
+                                </label>
+                            </div>
+                            <button class="btn-primary">Update Security</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function dashboard() {
+            return {
+                activeSection: 'dashboard',
+                sidebarCollapsed: false,
+                mobileMenuOpen: false,
+                stats: {
+                    totalUsers: '2,847',
+                    revenue: '$45,210',
+                    orders: '1,423',
+                    views: '89.2K'
+                },
+                users: [
+                    { id: 1, name: 'John Smith', email: 'john@example.com', status: 'active', joined: '2024-01-15' },
+                    { id: 2, name: 'Sarah Johnson', email: 'sarah@example.com', status: 'active', joined: '2024-01-14' },
+                    { id: 3, name: 'Mike Wilson', email: 'mike@example.com', status: 'inactive', joined: '2024-01-13' },
+                    { id: 4, name: 'Emily Davis', email: 'emily@example.com', status: 'pending', joined: '2024-01-12' }
+                ],
+                verificationCode: ['', '', '', '', '', ''],
+                
+                init() {
+                    this.initCharts();
+                    this.checkMobileView();
+                    this.setupAutoVerification();
+                },
+
+                setActiveSection(section) {
+                    this.activeSection = section;
+                    if (window.innerWidth <= 768) {
+                        this.mobileMenuOpen = false;
+                    }
+                },
+
+                toggleSidebar() {
+                    if (window.innerWidth <= 768) {
+                        this.mobileMenuOpen = !this.mobileMenuOpen;
+                    } else {
+                        this.sidebarCollapsed = !this.sidebarCollapsed;
+                    }
+                },
+
+                checkMobileView() {
+                    const handleResize = () => {
+                        if (window.innerWidth <= 768) {
+                            this.sidebarCollapsed = false;
+                            this.mobileMenuOpen = false;
+                        }
+                    };
+                    window.addEventListener('resize', handleResize);
+                },
+
+                initGoogleSignIn() {
+                    // Google OAuth integration
+                    alert('Google Sign-In configuration initiated. In production, this would redirect to Google OAuth setup.');
+                },
+
+                autoFillCode(event, index) {
+                    const value = event.target.value;
+                    if (value && index < 5) {
+                        const nextInput = event.target.parentNode.children[index + 1];
+                        if (nextInput) {
+                            nextInput.focus();
+                        }
+                    }
+                    this.verificationCode[index] = value;
+                    
+                    // Auto-detect SMS codes (requires Web OTP API)
+                    if ('OTPCredential' in window) {
+                        navigator.credentials.get({
+                            otp: { transport:['sms'] }
+                        }).then(otp => {
+                            const code = otp.code;
+                            if (code.length === 6) {
+                                for (let i = 0; i < 6; i++) {
+                                    const input = event.target.parentNode.children[i];
+                                    if (input) {
+                                        input.value = code[i];
+                                        this.verificationCode[i] = code[i];
+                                    }
+                                }
+                            }
+                        }).catch(err => {
+                            console.log(err);
+                        });
+                    }
+                },
+
+                verifyCode() {
+                    const code = this.verificationCode.join('');
+                    if (code.length === 6) {
+                        alert(`Verification code ${code} submitted successfully!`);
+                    } else {
+                        alert('Please enter a complete 6-digit code.');
+                    }
+                },
+
+                setupAutoVerification() {
+                    // Setup auto-detection for verification codes
+                    if ('OTPCredential' in window) {
+                        console.log('Web OTP API is supported');
+                    }
+                },
+
+                logout() {
+                    if (confirm('Are you sure you want to logout?')) {
+                        window.location.href = '/login-form/index.php';
+                    }
+                },
+
+                initCharts() {
+                    // Initialize main analytics chart
+                    setTimeout(() => {
+                        const ctx = document.getElementById('analyticsChart');
+                        if (ctx) {
+                            new Chart(ctx, {
+                                type: 'line',
+                                data: {
+                                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                                    datasets: [{
+                                        label: 'Users',
+                                        data: [1200, 1900, 3000, 5000, 2000, 3000],
+                                        borderColor: '#4f46e5',
+                                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                                        tension: 0.4
+                                    }, {
+                                        label: 'Revenue',
+                                        data: [2000, 3200, 4500, 6200, 3800, 4200],
+                                        borderColor: '#10b981',
+                                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                        tension: 0.4
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: {
+                                            labels: {
+                                                color: 'white'
+                                            }
+                                        }
+                                    },
+                                    scales: {
+                                        x: {
+                                            ticks: {
+                                                color: 'rgba(255, 255, 255, 0.8)'
+                                            },
+                                            grid: {
+                                                color: 'rgba(255, 255, 255, 0.1)'
+                                            }
+                                        },
+                                        y: {
+                                            ticks: {
+                                                color: 'rgba(255, 255, 255, 0.8)'
+                                            },
+                                            grid: {
+                                                color: 'rgba(255, 255, 255, 0.1)'
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+
+                        // Initialize advanced chart
+                        const advancedCtx = document.getElementById('advancedChart');
+                        if (advancedCtx) {
+                            new Chart(advancedCtx, {
+                                type: 'doughnut',
+                                data: {
+                                    labels: ['Desktop', 'Mobile', 'Tablet'],
+                                    datasets: [{
+                                        data: [45, 35, 20],
+                                        backgroundColor: [
+                                            '#4f46e5',
+                                            '#10b981',
+                                            '#f59e0b'
+                                        ],
+                                        borderWidth: 0
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: {
+                                            position: 'bottom',
+                                            labels: {
+                                                color: 'white',
+                                                padding: 20
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }, 100);
+                }
+            };
+        }
+
+        // Add click outside handler for mobile menu
+        document.addEventListener('click', function(event) {
+            const sidebar = document.querySelector('.sidebar');
+            const toggleBtn = document.querySelector('.toggle-btn');
+            
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(event.target) && 
+                !toggleBtn.contains(event.target)) {
+                Alpine.store('dashboard').mobileMenuOpen = false;
+            }
+        });
+
+        // Auto-focus verification inputs
+        document.addEventListener('alpine:init', () => {
+            // Setup verification input auto-focus
+            document.addEventListener('input', (e) => {
+                if (e.target.classList.contains('verification-input')) {
+                    const value = e.target.value;
+                    if (value && e.target.nextElementSibling) {
+                        e.target.nextElementSibling.focus();
+                    }
+                }
+            });
+        });
+    </script>
+
+    <!-- Google OAuth Integration Script -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+        // Google Sign-In Configuration
+        function initializeGoogleSignIn() {
+            google.accounts.id.initialize({
+                client_id: '459146689018-466vnnvi18v7foh7ukiiiorhdpanil6g.apps.googleusercontent.com',
+                callback: handleGoogleSignIn
+            });
+            
+            google.accounts.id.renderButton(
+                document.getElementById('google-signin-btn'),
+                { theme: 'outline', size: 'large' }
+            );
+        }
+
+        function handleGoogleSignIn(response) {
+            // Decode the JWT token
+            const responsePayload = decodeJwtResponse(response.credential);
+            
+            console.log("ID: " + responsePayload.sub);
+            console.log('Full Name: ' + responsePayload.name);
+            console.log('Given Name: ' + responsePayload.given_name);
+            console.log('Family Name: ' + responsePayload.family_name);
+            console.log("Image URL: " + responsePayload.picture);
+            console.log("Email: " + responsePayload.email);
+            
+            // Send to your PHP backend for processing
+            fetch('/login-form/google-signin.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    token: response.credential,
+                    user_data: responsePayload
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/login-form/user-dashboard.php';
+                }
+            });
+        }
+
+        function decodeJwtResponse(token) {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
+
+        // Initialize when page loads
+        window.onload = function() {
+            if (typeof google !== 'undefined') {
+                initializeGoogleSignIn();
+            }
+        };
+    </script>
+</body>
+</html>
